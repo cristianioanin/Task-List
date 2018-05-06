@@ -4,6 +4,7 @@ const taskList = document.querySelector('.collection');
 const clearBtn = document.querySelector('.clear-tasks');
 const filter = document.querySelector('#filter');
 const taskInput = document.querySelector('#task');
+const urgentCheck = document.querySelector('#urgent');
 
 // Event-listeners loader
 loadEventListeners();
@@ -23,31 +24,40 @@ function loadEventListeners() {
 
 // Add simple task
 // Helper function to create list element for DOM
-function createListElement(input) {
-        // Create <li> element
-        const li = document.createElement('li');
-        li.className = 'collection-item';
-        li.appendChild(document.createTextNode(input));
-    
-        // Create <a> element
-        const link = document.createElement('a');
-        link.className = 'delete-item secondary-content';
-        link.innerHTML = '<i class="fa fa-remove"></i>';
-        li.appendChild(link);
-    
-        // Append list item to the <ul> element in the page
+function createListElement(input, urgent) {
+    const urgentMark = document.createElement('a');
+    urgentMark.innerHTML = '<i class="fa fa-exclamation"></i>';
+
+    // Create <li> element
+    const li = document.createElement('li');
+    li.className = 'collection-item';
+    if (urgent === true || urgent.checked) { li.appendChild(urgentMark); }
+    // if (urgent.checked) { urgent.removeAttribute('checked'); }
+    li.appendChild(document.createTextNode(input));
+
+    // Create <a> element
+    const link = document.createElement('a');
+    link.className = 'delete-item secondary-content';
+    link.innerHTML = '<i class="fa fa-remove"></i>';
+    li.appendChild(link);
+
+    // Append list item to the <ul> element in the page
+    if ( (urgent === true || urgent.checked) && taskList.firstChild ) {
+        taskList.insertBefore(li, taskList.firstChild);
+    } else {
         taskList.appendChild(li);
+    }
 }
 
 function addTask(event) {
     event.preventDefault();
 
     // Create and append list element
-    if (taskInput.value === '') alert('Add a task!');
-    createListElement(taskInput.value);
+    if (taskInput.value === '') { return alert('Add a task!') };
+    createListElement(taskInput.value, urgentCheck);
 
     // Store task in local storage
-    taskToLocalStorage(taskInput.value);
+    taskToLocalStorage(taskInput.value, urgentCheck);
 
     // Clear input
     taskInput.value = '';
@@ -66,10 +76,10 @@ function checkLocalStorage() {
     return tasksArray;
 }
 
-function taskToLocalStorage(task) {
+function taskToLocalStorage(task, urgent) {
     let tasks = checkLocalStorage();
 
-    tasks.push(task);
+    tasks.push({ task: task, urgent: urgent.checked });
     localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
@@ -77,8 +87,8 @@ function taskToLocalStorage(task) {
 function getTasks() {
     let tasks = checkLocalStorage();
 
-    tasks.forEach(task => {
-        createListElement(task);
+    tasks.forEach((task) => {
+        createListElement(task.task, task.urgent);
     });
 }
 
@@ -100,7 +110,7 @@ function removeTaskFromLocalStorage(taskItem) {
     let tasks = checkLocalStorage();
 
     tasks.forEach((task, index) => {
-        if (taskItem.textContent === task) {
+        if (taskItem.textContent === task.task) {
             tasks.splice(index, 1);
         }
     });
@@ -130,7 +140,8 @@ function filterTasks(event) {
     const text = event.target.value.toLowerCase();
 
     document.querySelectorAll('.collection-item').forEach(task => {
-        const item = task.firstChild.textContent;
+        const item = task.firstChild.nodeType === 1 ? task.firstChild.nextSibling.textContent : task.firstChild.textContent;
+
         if (item.toLowerCase().indexOf(text) !== -1) {
             task.style.display = 'block';
         } else {
