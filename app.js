@@ -58,6 +58,7 @@ function addTask(event) {
 
     // Store task in local storage
     taskToLocalStorage(taskInput.value, urgentCheck);
+    restoreCheckbox(urgentCheck);
 
     // Clear input
     taskInput.value = '';
