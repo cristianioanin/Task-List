@@ -57,8 +57,9 @@ function addTask(event) {
 
     // Create and append list element
     if (taskInput.value === "") {
-        return alert("Add a task!");
+        alert("Add a task!");
     }
+
     createListElement(taskInput.value, urgentCheck);
 
     // Store task in local storage
